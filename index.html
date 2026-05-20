@@ -2,268 +2,73 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=2.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام الجرد الاحترافي المتكامل</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
-    </script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        :root {
-            --p-blue: #1a56db;
-            --p-green: #10b981;
-            --p-red: #ef4444;
-            --p-orange: #f59e0b;
-            --p-dark: #0a1628;
+        :root { 
+            --p-blue: #1a56db; 
+            --p-green: #10b981; 
+            --p-red: #ef4444; 
+            --p-orange: #f59e0b; 
+            --p-dark: #0a1628; 
             --p-card: rgba(255, 255, 255, 0.05);
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: var(--p-dark);
-            color: #f8fafc;
-            direction: rtl;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--p-dark); color: #f8fafc; direction: rtl; min-height: 100vh; overflow-x: hidden; }
+        
+        .app { max-width: 1200px; margin: 0 auto; padding: 15px; }
+        header { padding: 15px; background: var(--p-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; margin-bottom: 15px; text-align: center; }
+        
+        /* التبويبات */
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .tab { flex: 1; min-width: 90px; padding: 12px; border: none; border-radius: 12px; background: var(--p-card); color: #94a3b8; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 13px; }
+        .tab.active { background: var(--p-blue); color: #fff; box-shadow: 0 4px 15px rgba(26,86,219,0.3); }
 
-        .app {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 15px;
-        }
-        header {
-            padding: 15px;
-            background: var(--p-card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
+        .panel { display: none; } 
+        .panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-        .tab {
-            flex: 1;
-            min-width: 90px;
-            padding: 12px;
-            border: none;
-            border-radius: 12px;
-            background: var(--p-card);
-            color: #94a3b8;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 13px;
-        }
-        .tab.active {
-            background: var(--p-blue);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(26, 86, 219, 0.3);
-        }
-
-        .panel {
-            display: none;
-        }
-        .panel.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .card {
-            background: var(--p-card);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 18px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        .sinp {
-            width: 100%;
-            padding: 15px;
-            background: rgba(26, 86, 219, 0.1);
-            border: 2px solid var(--p-blue);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 18px;
-            text-align: center;
-            outline: none;
-            margin-bottom: 10px;
-        }
-
-        .f-bar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .f-btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            background: #334155;
-            color: #fff;
-            transition: 0.2s;
-        }
+        .card { background: var(--p-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 15px; margin-bottom: 15px; }
+        .sinp { width: 100%; padding: 15px; background: rgba(26,86,219,0.1); border: 2px solid var(--p-blue); border-radius: 12px; color: #fff; font-size: 18px; text-align: center; outline: none; margin-bottom: 10px; }
+        
+        /* شريط الفلاتر */
+        .f-bar { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+        .f-btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: bold; background: #334155; color: #fff; transition: 0.2s; }
         .f-btn.active { background: var(--p-blue); }
         .f-btn.f-match.active { background: #3b82f6; }
         .f-btn.f-plus.active { background: var(--p-green); }
         .f-btn.f-minus.active { background: var(--p-red); }
         .f-btn.f-scanned.active { background: var(--p-orange); }
 
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 500px;
-        }
-        th {
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            font-size: 11px;
-            text-align: center;
-            color: #94a3b8;
-            position: sticky;
-            top: 0;
-        }
-        td {
-            padding: 12px;
-            text-align: center;
-            font-size: 13px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
+        /* الجداول */
+        .table-container { width: 100%; overflow-x: auto; max-height: 500px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { padding: 12px; background: rgba(255,255,255,0.03); font-size: 11px; text-align: center; color: #94a3b8; position: sticky; top: 0; }
+        td { padding: 12px; text-align: center; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        
+        .row-match { color: #60a5fa; } /* أزرق للمطابق */
+        .row-plus { color: var(--p-green); }  /* أخضر للزيادة */
+        .row-minus { color: var(--p-red); } /* أحمر للنقص */
+        
+        .item-subname { display: block; font-size: 10px; color: #94a3b8; margin-top: 5px; }
+        .diff-badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 12px; background: rgba(255,255,255,0.1); }
 
-        .row-match { color: #60a5fa; }
-        .row-plus { color: var(--p-green); }
-        .row-minus { color: var(--p-red); }
+        .btn-action { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-red { background: rgba(239, 68, 68, 0.2); color: var(--p-red); border: 1px solid var(--p-red); }
 
-        .item-subname {
-            display: block;
-            font-size: 10px;
-            color: #94a3b8;
-            margin-top: 5px;
-        }
-        .diff-badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 12px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-action {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        .btn-red {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--p-red);
-            border: 1px solid var(--p-red);
-        }
-        .btn-green {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--p-green);
-            border: 1px solid var(--p-green);
-        }
-        .btn-blue {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid #3b82f6;
-        }
-        .btn-sm {
-            padding: 4px 10px;
-            font-size: 12px;
-            margin: 2px;
-        }
-
-        .loader {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            flex-direction: column;
-        }
-        .spin {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--p-blue);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .file-list {
-            margin-top: 15px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 10px;
-        }
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 13px;
-        }
-        .file-item:last-child { border-bottom: none; }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-        }
-        .stat-box {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        .stat-box span {
-            display: block;
-            font-size: 18px;
-            font-weight: bold;
-        }
+        /* شاشة التحميل */
+        .loader { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; }
+        .spin { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--p-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div id="loading" class="loader">
     <div class="spin"></div>
-    <p style="margin-top: 15px;">جاري معالجة البيانات...</p>
+    <p style="margin-top: 15px;">جاري معالجة البيانات الكبيرة... يرجى الانتظار</p>
 </div>
 
 <div class="app">
@@ -290,12 +95,12 @@
     <div class="panel" id="p-inv">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3>سجل ما تم جرده الآن (آخر شيء أولاً)</h3>
+                <h3>سجل ما تم جرده الآن</h3>
                 <button class="btn-action btn-red" onclick="clearData('inventory')">🗑 مسح السجل</button>
             </div>
             <div class="table-container">
                 <table id="table-inv">
-                    <thead><tr><th>المعرف</th><th>اسم المنتج</th><th>الكمية المجرودة</th><th>إجراءات</th></tr></thead>
+                    <thead><tr><th>المعرف</th><th>اسم المنتج</th><th>الكمية المجرودة</th></tr></thead>
                     <tbody id="inv-body"></tbody>
                 </table>
             </div>
@@ -306,11 +111,7 @@
         <div class="card">
             <h3>رفع بيانات المرجع (السيستم)</h3>
             <p style="font-size: 11px; color: #fbbf24; margin-bottom: 10px;">سيتم جلب الكمية حصرياً من عمود "الفعلي النهائي".</p>
-            <input type="file" id="stockFileInput" onchange="processFile(this, 'stock')">
-            <div id="stockFileList" class="file-list"></div>
-            <div style="margin-top: 10px;">
-                <button class="btn-action btn-blue btn-sm" onclick="exportToExcel('table-stock', 'بيانات-المرجع')">📥 تصدير إكسل</button>
-            </div>
+            <input type="file" onchange="processFile(this, 'stock')">
             <div class="table-container" style="margin-top: 15px;">
                 <table id="table-stock">
                     <thead><tr><th>المعرف</th><th>الاسم</th><th>الكمية بالنظام</th></tr></thead>
@@ -329,10 +130,6 @@
                 <button class="f-btn f-minus" onclick="setFilt(this, 'minus')">🔴 نقص</button>
                 <button class="f-btn f-scanned" onclick="setFilt(this, 'scanned')">🟠 مجرود فقط</button>
             </div>
-            <div id="cmpStats" class="stats-grid"></div>
-            <div style="margin-bottom: 10px;">
-                <button class="btn-action btn-blue btn-sm" onclick="exportToExcel('table-cmp', 'تقرير-المقارنة')">📥 تصدير إكسل</button>
-            </div>
             <div class="table-container">
                 <table id="table-cmp">
                     <thead><tr><th>رقم الصنف / الاسم</th><th>المرجع</th><th>الجرد</th><th>الفرق</th></tr></thead>
@@ -346,8 +143,7 @@
         <div class="card">
             <h3>قاعدة بيانات الأصناف</h3>
             <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">ارفع ملف الإكسيل الرئيسي هنا ليتعرف النظام على الأسماء.</p>
-            <input type="file" id="productsFileInput" onchange="processFile(this, 'products')">
-            <div id="productsFileList" class="file-list"></div>
+            <input type="file" onchange="processFile(this, 'products')">
             <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                 <button class="btn-action btn-red" onclick="clearData('products')">🗑 مسح قاعدة الأصناف</button>
             </div>
@@ -360,250 +156,83 @@ let db;
 let currentFilter = 'all';
 const loader = document.getElementById('loading');
 
-function playSound(type) {
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        gainNode.gain.value = 1.0;
-        if (type === 'success') {
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            oscillator.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-            oscillator.stop(audioCtx.currentTime + 0.3);
-        } else if (type === 'error') {
-            oscillator.frequency.value = 200;
-            oscillator.type = 'square';
-            oscillator.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-            oscillator.stop(audioCtx.currentTime + 0.4);
-        }
-    } catch (e) {}
-}
-
-const request = indexedDB.open("UltraJardProDB", 2);
+// فتح قاعدة البيانات
+const request = indexedDB.open("UltraJardProDB", 1);
 request.onupgradeneeded = e => {
     db = e.target.result;
-    if (!db.objectStoreNames.contains('products')) {
-        db.createObjectStore("products", { keyPath: "id", autoIncrement: true }).createIndex("barcode", "barcode");
-    }
-    if (!db.objectStoreNames.contains('inventory')) {
-        db.createObjectStore("inventory", { keyPath: "key" });
-    }
-    if (!db.objectStoreNames.contains('stock')) {
-        db.createObjectStore("stock", { keyPath: "key" });
-    }
-    if (!db.objectStoreNames.contains('files')) {
-        const filesStore = db.createObjectStore("files", { keyPath: "id", autoIncrement: true });
-        filesStore.createIndex("type", "type", { unique: false });
-    }
+    db.createObjectStore("products", {keyPath:"id", autoIncrement:true}).createIndex("barcode","barcode");
+    db.createObjectStore("inventory", {keyPath:"key"});
+    db.createObjectStore("stock", {keyPath:"key"});
 };
-request.onsuccess = e => {
-    db = e.target.result;
-    renderAll();
-};
+request.onsuccess = e => { db = e.target.result; renderAll(); };
 
-function cleanCode(code) {
-    if (!code) return '';
-    return String(code).replace(/[-\s]/g, '').trim();
-}
-
+// دالة تحليل النصوص المتكررة (تجاهل اسم المتجر)
 function analyzeBlacklist(rows) {
     const counts = {};
     rows.forEach(r => r.forEach(c => {
-        let v = String(c || '').trim();
-        if (v && /[a-zA-Z\u0600-\u06FF]/.test(v)) counts[v] = (counts[v] || 0) + 1;
+        let v = String(c||'').trim();
+        if(v && /[a-zA-Z\u0600-\u06FF]/.test(v)) counts[v] = (counts[v]||0) + 1;
     }));
-    return new Set(Object.keys(counts).filter(k => counts[k] > 10));
+    return Object.keys(counts).filter(k => counts[k] > 10);
 }
 
-function generateFileId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-}
-
-// ✅ الرجوع إلى الدالة الأصلية كما كانت بالضبط
+// معالجة الملفات
 async function processFile(input, storeName) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const mode = confirm("هل تريد تحديث البيانات (مسح القديم واستبداله)؟\n\nاضغط موافق للتحديث، أو إلغاء للدمج (إضافة البيانات الجديدة دون حذف القديم، مع جمع الكميات في حالة المرجع).");
+    const file = input.files[0]; if(!file) return;
     loader.style.display = 'flex';
-
+    
     const buffer = await file.arrayBuffer();
     const wb = XLSX.read(buffer, { type: 'array' });
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    if (rows.length === 0) { loader.style.display = 'none'; return; }
-
-    const header = rows[0];
-    const targetIdx = (storeName === 'stock') ? header.findIndex(c => String(c).trim() === "الفعلي النهائي") : -1;
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
+    
+    let targetIdx = rows[0].findIndex(c => String(c).trim() === "الفعلي النهائي");
     const blacklist = analyzeBlacklist(rows);
-    const fileId = generateFileId();
-    const fileName = file.name;
-
-    const batch = [];
-    for (let i = 1; i < rows.length; i++) {
-        let row = rows[i];
-        let d = { barcode: "", item_no: "", name: "", qty: 0, fileId: fileId };
-        // ❗️ الدالة الأصلية: فحص كل خلية كما كنت تستخدمها
-        row.forEach((cell, idx) => {
-            let v = String(cell || '').trim();
-            if (!v || blacklist.has(v)) return;
-            const digits = v.replace(/-/g, '');
-            if (v.includes('-') && /^\d+$/.test(digits) && digits.length > 12)
-                d.item_no = v;
-            else if (/^\d+$/.test(val = v) && v.length > 6)
-                d.barcode = v;
-            else if (/[a-zA-Z\u0600-\u06FF]/.test(v))
-                d.name = v;
-            if (storeName === 'stock' && idx === targetIdx)
-                d.qty = parseFloat(cell) || 0;
-        });
-
-        const key = d.item_no || d.barcode;
-        if (key) {
-            batch.push({ key: key, name: d.name, qty: d.qty, fileId: fileId });
-        }
-    }
-
-    const tx = db.transaction([storeName, 'files'], 'readwrite');
+    
+    const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
-    const filesStore = tx.objectStore('files');
 
-    if (mode === true) {
-        store.clear();
-        const index = filesStore.index("type");
-        index.openCursor().onsuccess = (e) => {
-            const cursor = e.target.result;
-            if (cursor) {
-                if (cursor.value.type === storeName) cursor.delete();
-                cursor.continue();
-            }
-        };
-        for (const item of batch) {
-            store.put(item);
-        }
-    } else {
-        for (const item of batch) {
-            const existing = await new Promise((resolve) => {
-                const getReq = store.get(item.key);
-                getReq.onsuccess = () => resolve(getReq.result);
-                getReq.onerror = () => resolve(null);
-            });
-
-            if (existing) {
-                if (storeName === 'stock') {
-                    existing.qty = (existing.qty || 0) + (item.qty || 0);
-                    existing.name = item.name || existing.name;
-                    store.put(existing);
-                }
-                // products: لا نكرر
-            } else {
-                store.put(item);
-            }
+    for(let i=1; i<rows.length; i++) {
+        let row = rows[i];
+        let d = { barcode:"", item_no:"", name:"", qty:0 };
+        row.forEach((cell, idx) => {
+            let v = String(cell||'').trim();
+            if(!v || blacklist.includes(v)) return;
+            const digits = v.replace(/-/g, '');
+            if(v.includes('-') && /^\d+$/.test(digits) && digits.length > 12) d.item_no = v;
+            else if(/^\d+$/.test(val = v) && v.length > 6) d.barcode = v;
+            else if(/[a-zA-Z\u0600-\u06FF]/.test(v)) d.name = v;
+            if(storeName === 'stock' && idx === targetIdx) d.qty = parseFloat(cell) || 0;
+        });
+        if(d.item_no || d.barcode) {
+            if(storeName === 'products') store.put(d);
+            else store.put({ key: d.item_no || d.barcode, name: d.name, qty: d.qty });
         }
     }
-
-    filesStore.add({ name: fileName, type: storeName, fileId: fileId, timestamp: Date.now() });
-
-    tx.oncomplete = () => {
-        loader.style.display = 'none';
-        const action = mode ? "تحديث" : "دمج";
-        alert(`تم ${action} البيانات بنجاح من الملف: ${fileName}`);
-        renderAll();
-    };
-
-    input.value = '';
+    tx.oncomplete = () => { loader.style.display = 'none'; alert("تم التحديث بنجاح"); renderAll(); };
 }
 
-function deleteFile(fileId, storeType) {
-    if (!confirm('هل تريد حذف جميع البيانات المرتبطة بهذا الملف؟')) return;
-    const tx = db.transaction([storeType, "files"], "readwrite");
-    const store = tx.objectStore(storeType);
-    const filesStore = tx.objectStore("files");
-    store.openCursor().onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-            if (cursor.value.fileId === fileId) cursor.delete();
-            cursor.continue();
-        }
-    };
-    filesStore.delete(fileId);
-    tx.oncomplete = () => renderAll();
-}
-
-async function loadFileList(storeType) {
-    const tx = db.transaction("files", "readonly");
-    const store = tx.objectStore("files");
-    const index = store.index("type");
-    const files = await new Promise(r => index.getAll(storeType).onsuccess = e => r(e.target.result));
-    const container = document.getElementById(storeType === 'products' ? 'productsFileList' : 'stockFileList');
-    if (!container) return;
-    if (files.length === 0) {
-        container.innerHTML = '<div style="padding:10px;color:#94a3b8;">لا توجد ملفات مرفوعة بعد</div>';
-        return;
-    }
-    container.innerHTML = files.map(f => `
-        <div class="file-item">
-          <span>📄 ${f.name} (${new Date(f.timestamp).toLocaleString()})</span>
-          <button class="btn-action btn-red btn-sm" onclick="deleteFile(${f.id}, '${storeType}')">🗑 حذف</button>
-        </div>
-    `).join('');
-}
-
-function updateInventoryQty(key, currentQty) {
-    const newQty = prompt("أدخل الكمية الجديدة:", currentQty);
-    if (newQty === null) return;
-    const qtyNum = parseFloat(newQty);
-    if (isNaN(qtyNum) || qtyNum < 0) { alert("قيمة غير صالحة"); return; }
-    const tx = db.transaction("inventory", "readwrite");
-    const store = tx.objectStore("inventory");
-    const req = store.get(key);
-    req.onsuccess = () => {
-        const item = req.result;
-        if (item) { item.qty = qtyNum; store.put(item); }
-        tx.oncomplete = () => renderAll();
-    };
-}
-
-function deleteInventoryItem(key) {
-    if (!confirm("حذف هذا الصنف من السجل؟")) return;
-    const tx = db.transaction("inventory", "readwrite");
-    tx.objectStore("inventory").delete(key);
-    tx.oncomplete = () => renderAll();
-}
-
+// تحديث كافة الواجهات
 async function renderAll() {
-    if (!db) return;
-    const tx = db.transaction(["inventory", "stock", "products", "files"], "readonly");
+    if(!db) return;
+    const tx = db.transaction(["inventory", "stock", "products"], "readonly");
     const inv = await new Promise(r => tx.objectStore("inventory").getAll().onsuccess = e => r(e.target.result));
     const stock = await new Promise(r => tx.objectStore("stock").getAll().onsuccess = e => r(e.target.result));
 
-    const invReversed = [...inv].reverse();
-    document.getElementById('inv-body').innerHTML = invReversed.map(i => `
-        <tr>
-          <td>${i.key}</td>
-          <td>${i.name || ''}</td>
-          <td><b>${i.qty}</b></td>
-          <td>
-            <button class="btn-action btn-blue btn-sm" onclick="updateInventoryQty('${i.key}', ${i.qty})">✏️ تعديل</button>
-            <button class="btn-action btn-red btn-sm" onclick="deleteInventoryItem('${i.key}')">🗑 حذف</button>
-          </td>
-        </tr>
+    // 1. تحديث سجل الجرد
+    document.getElementById('inv-body').innerHTML = inv.map(i => `
+        <tr><td>${i.key}</td><td>${i.name}</td><td><b>${i.qty}</b></td></tr>
     `).join('');
 
+    // 2. تحديث المرجع
     document.querySelector('#table-stock tbody').innerHTML = stock.map(s => `
-        <tr><td>${s.key}</td><td>${s.name || ''}</td><td>${s.qty}</td></tr>
+        <tr><td>${s.key}</td><td>${s.name}</td><td>${s.qty}</td></tr>
     `).join('');
 
+    // 3. تحديث المقارنة (مع دمج الاسم)
     const cmpBody = document.getElementById('cmp-body');
     cmpBody.innerHTML = '';
     const allKeys = new Set([...inv.map(i => i.key), ...stock.map(s => s.key)]);
     const fragment = document.createDocumentFragment();
-    let countMatch = 0, countPlus = 0, countMinus = 0, countScanned = 0;
 
     allKeys.forEach(key => {
         const iI = inv.find(x => x.key === key);
@@ -611,42 +240,27 @@ async function renderAll() {
         const qI = iI ? iI.qty : 0;
         const qS = sI ? sI.qty : 0;
         const diff = qI - qS;
-        const name = (iI || sI || { name: "غير مسجل بالقاعدة" }).name || "غير مسجل بالقاعدة";
+        const name = (iI || sI).name || "غير مسجل بالقاعدة";
 
-        if (currentFilter === 'match' && diff !== 0) return;
-        if (currentFilter === 'plus' && diff <= 0) return;
-        if (currentFilter === 'minus' && diff >= 0) return;
-        if (currentFilter === 'scanned' && qI === 0) return;
-
-        if (diff === 0) countMatch++;
-        if (diff > 0) countPlus++;
-        if (diff < 0) countMinus++;
-        if (qI > 0 && qS === 0) countScanned++;
+        if(currentFilter === 'match' && diff !== 0) return;
+        if(currentFilter === 'plus' && diff <= 0) return;
+        if(currentFilter === 'minus' && diff >= 0) return;
+        if(currentFilter === 'scanned' && qI === 0) return;
 
         let rowCls = diff === 0 ? 'row-match' : (diff > 0 ? 'row-plus' : 'row-minus');
         const tr = document.createElement('tr');
         tr.className = rowCls;
         tr.innerHTML = `
-          <td style="text-align:right;">${key}<span class="item-subname">${name}</span></td>
-          <td>${qS}</td><td>${qI}</td>
-          <td><span class="diff-badge">${diff > 0 ? '+' : ''}${diff}</span></td>
+            <td style="text-align:right;">${key}<span class="item-subname">${name}</span></td>
+            <td>${qS}</td><td>${qI}</td>
+            <td><span class="diff-badge">${diff > 0 ? '+' : ''}${diff}</span></td>
         `;
         fragment.appendChild(tr);
     });
     cmpBody.appendChild(fragment);
-
-    document.getElementById('cmpStats').innerHTML = `
-        <div class="stat-box">📋 الرصيد <span>${stock.length}</span></div>
-        <div class="stat-box">🟢 الزيادة <span>${countPlus}</span></div>
-        <div class="stat-box">🔴 النقص <span>${countMinus}</span></div>
-        <div class="stat-box">🔵 المطابق <span>${countMatch}</span></div>
-        <div class="stat-box">🟠 المجرود <span>${countScanned}</span></div>
-    `;
-
-    loadFileList('products');
-    loadFileList('stock');
 }
 
+// الفلاتر
 function setFilt(btn, type) {
     currentFilter = type;
     document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
@@ -654,88 +268,43 @@ function setFilt(btn, type) {
     renderAll();
 }
 
+// التبديل بين الصفحات
 function sw(id) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('p-' + id).classList.add('active');
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(t => t.classList.remove('active'));
-    const map = { 'scan': 0, 'inv': 1, 'stock': 2, 'cmp': 3, 'db': 4 };
-    if (map[id] !== undefined && tabs[map[id]]) tabs[map[id]].classList.add('active');
+    document.getElementById('p-'+id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if(event) event.currentTarget.classList.add('active');
 }
 
+// منطق البحث والسكانر
 document.getElementById('si').onkeypress = async e => {
-    if (e.key === 'Enter') {
-        const rawVal = e.target.value.trim();
-        const cleanVal = cleanCode(rawVal);
-        if (!cleanVal) return;
-
+    if(e.key === 'Enter') {
+        const val = e.target.value.trim();
         const tx = db.transaction(["products", "inventory"], "readwrite");
         const prods = await new Promise(r => tx.objectStore("products").getAll().onsuccess = ev => r(ev.target.result));
-
-        const match = prods.find(p => {
-            return cleanCode(p.barcode) === cleanVal || cleanCode(p.item_no) === cleanVal || p.barcode === rawVal || p.item_no === rawVal;
-        });
-
-        if (match) {
+        const match = prods.find(p => p.barcode === val || p.item_no === val);
+        
+        if(match) {
             const inv = tx.objectStore("inventory");
             const key = match.item_no || match.barcode;
             const exist = await new Promise(r => inv.get(key).onsuccess = ev => r(ev.target.result));
-            if (exist) { exist.qty++; inv.put(exist); }
+            if(exist) { exist.qty++; inv.put(exist); }
             else { inv.put({ key: key, name: match.name, qty: 1 }); }
             document.getElementById('status').innerHTML = `<span style="color:var(--p-green)">✅ تم رصد: ${match.name}</span>`;
-            playSound('success');
         } else {
-            document.getElementById('status').innerHTML = `<span style="color:var(--p-red)">❌ لم يتم التعرف على الصنف. تأكد من رفع ملف الأصناف في ⚙️ الإعدادات</span>`;
-            playSound('error');
+            document.getElementById('status').innerHTML = `<span style="color:var(--p-red)">❌ لم يتم التعرف على الصنف</span>`;
         }
-        e.target.value = "";
-        renderAll();
+        e.target.value = ""; renderAll();
     }
 };
 
-function clearData(s) {
-    if (confirm("حذف البيانات نهائياً؟")) {
-        const tx = db.transaction([s, "files"], "readwrite");
-        tx.objectStore(s).clear();
-        const filesStore = tx.objectStore("files");
-        const index = filesStore.index("type");
-        index.openCursor().onsuccess = (e) => {
-            const cursor = e.target.result;
-            if (cursor) {
-                if (cursor.value.type === s) cursor.delete();
-                cursor.continue();
-            }
-        };
-        tx.oncomplete = () => renderAll();
-    }
-}
-
-function exportToExcel(tableId, filename) {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-    const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-    XLSX.writeFile(wb, filename + ".xlsx");
-}
+function clearData(s) { if(confirm("حذف البيانات نهائياً؟")) db.transaction(s,"readwrite").objectStore(s).clear().oncomplete=()=>renderAll(); }
 
 window.onload = () => {
-    const sc = new Html5QrcodeScanner("reader", {
-        fps: 15,
-        qrbox: 250,
-        formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.ITF,
-            Html5QrcodeSupportedFormats.CODABAR
-        ]
-    });
-    sc.render(t => {
-        document.getElementById('si').value = t;
-        document.getElementById('si').dispatchEvent(new KeyboardEvent('keypress', { 'key': 'Enter' }));
+    const sc = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
+    sc.render(t => { 
+        document.getElementById('si').value = t; 
+        document.getElementById('si').dispatchEvent(new KeyboardEvent('keypress',{'key':'Enter'})); 
     });
 };
 </script>
