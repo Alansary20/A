@@ -406,7 +406,6 @@ request.onsuccess = e => {
     renderAll();
 };
 
-// ✅ دالة مساعدة لتنظيف الكود من الشرطات والمسافات
 function cleanCode(code) {
     if (!code) return '';
     return String(code).replace(/[-\s]/g, '').trim();
@@ -425,6 +424,7 @@ function generateFileId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
 
+// ✅ الرجوع إلى الدالة الأصلية كما كانت بالضبط
 async function processFile(input, storeName) {
     const file = input.files[0];
     if (!file) return;
@@ -439,27 +439,33 @@ async function processFile(input, storeName) {
     if (rows.length === 0) { loader.style.display = 'none'; return; }
 
     const header = rows[0];
-    const targetIdx = header.findIndex(c => String(c).trim() === "الفعلي النهائي");
+    const targetIdx = (storeName === 'stock') ? header.findIndex(c => String(c).trim() === "الفعلي النهائي") : -1;
     const blacklist = analyzeBlacklist(rows);
     const fileId = generateFileId();
     const fileName = file.name;
 
     const batch = [];
     for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        let item_no = '', barcode = '', name = '', qty = 0;
-        for (let idx = 0; idx < row.length; idx++) {
-            let v = String(row[idx] || '').trim();
-            if (!v || blacklist.has(v)) continue;
+        let row = rows[i];
+        let d = { barcode: "", item_no: "", name: "", qty: 0, fileId: fileId };
+        // ❗️ الدالة الأصلية: فحص كل خلية كما كنت تستخدمها
+        row.forEach((cell, idx) => {
+            let v = String(cell || '').trim();
+            if (!v || blacklist.has(v)) return;
             const digits = v.replace(/-/g, '');
-            if (v.includes('-') && /^\d+$/.test(digits) && digits.length > 12) item_no = v;
-            else if (/^\d+$/.test(v) && v.length > 6) barcode = v;
-            else if (/[a-zA-Z\u0600-\u06FF]/.test(v)) name = v;
-            if (storeName === 'stock' && idx === targetIdx) qty = parseFloat(row[idx]) || 0;
-        }
-        const key = item_no || barcode;
+            if (v.includes('-') && /^\d+$/.test(digits) && digits.length > 12)
+                d.item_no = v;
+            else if (/^\d+$/.test(val = v) && v.length > 6)
+                d.barcode = v;
+            else if (/[a-zA-Z\u0600-\u06FF]/.test(v))
+                d.name = v;
+            if (storeName === 'stock' && idx === targetIdx)
+                d.qty = parseFloat(cell) || 0;
+        });
+
+        const key = d.item_no || d.barcode;
         if (key) {
-            batch.push({ key, name, qty, fileId });
+            batch.push({ key: key, name: d.name, qty: d.qty, fileId: fileId });
         }
     }
 
@@ -494,13 +500,14 @@ async function processFile(input, storeName) {
                     existing.name = item.name || existing.name;
                     store.put(existing);
                 }
+                // products: لا نكرر
             } else {
                 store.put(item);
             }
         }
     }
 
-    filesStore.add({ name: fileName, type: storeName, fileId, timestamp: Date.now() });
+    filesStore.add({ name: fileName, type: storeName, fileId: fileId, timestamp: Date.now() });
 
     tx.oncomplete = () => {
         loader.style.display = 'none';
@@ -656,7 +663,6 @@ function sw(id) {
     if (map[id] !== undefined && tabs[map[id]]) tabs[map[id]].classList.add('active');
 }
 
-// ✅ البحث المتسامح مع الكود المنظف
 document.getElementById('si').onkeypress = async e => {
     if (e.key === 'Enter') {
         const rawVal = e.target.value.trim();
@@ -665,8 +671,7 @@ document.getElementById('si').onkeypress = async e => {
 
         const tx = db.transaction(["products", "inventory"], "readwrite");
         const prods = await new Promise(r => tx.objectStore("products").getAll().onsuccess = ev => r(ev.target.result));
-        
-        // البحث باستخدام التنظيف للطرفين
+
         const match = prods.find(p => {
             return cleanCode(p.barcode) === cleanVal || cleanCode(p.item_no) === cleanVal || p.barcode === rawVal || p.item_no === rawVal;
         });
@@ -680,7 +685,7 @@ document.getElementById('si').onkeypress = async e => {
             document.getElementById('status').innerHTML = `<span style="color:var(--p-green)">✅ تم رصد: ${match.name}</span>`;
             playSound('success');
         } else {
-            document.getElementById('status').innerHTML = `<span style="color:var(--p-red)">❌ لم يتم التعرف على الصنف</span>`;
+            document.getElementById('status').innerHTML = `<span style="color:var(--p-red)">❌ لم يتم التعرف على الصنف. تأكد من رفع ملف الأصناف في ⚙️ الإعدادات</span>`;
             playSound('error');
         }
         e.target.value = "";
@@ -713,9 +718,8 @@ function exportToExcel(tableId, filename) {
 }
 
 window.onload = () => {
-    // ✅ دعم جميع صيغ الباركود الشائعة بالإضافة إلى QR
-    const sc = new Html5QrcodeScanner("reader", { 
-        fps: 15, 
+    const sc = new Html5QrcodeScanner("reader", {
+        fps: 15,
         qrbox: 250,
         formatsToSupport: [
             Html5QrcodeSupportedFormats.QR_CODE,
