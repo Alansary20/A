@@ -406,6 +406,12 @@ request.onsuccess = e => {
     renderAll();
 };
 
+// ✅ دالة مساعدة لتنظيف الكود من الشرطات والمسافات
+function cleanCode(code) {
+    if (!code) return '';
+    return String(code).replace(/[-\s]/g, '').trim();
+}
+
 function analyzeBlacklist(rows) {
     const counts = {};
     rows.forEach(r => r.forEach(c => {
@@ -419,7 +425,6 @@ function generateFileId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
 
-// ✅ معالجة الملفات مع دمج حقيقي يجمع الكميات
 async function processFile(input, storeName) {
     const file = input.files[0];
     if (!file) return;
@@ -463,7 +468,6 @@ async function processFile(input, storeName) {
     const filesStore = tx.objectStore('files');
 
     if (mode === true) {
-        // تحديث: مسح كل شيء
         store.clear();
         const index = filesStore.index("type");
         index.openCursor().onsuccess = (e) => {
@@ -473,14 +477,11 @@ async function processFile(input, storeName) {
                 cursor.continue();
             }
         };
-        // إضافة الدفعة مباشرة
         for (const item of batch) {
             store.put(item);
         }
     } else {
-        // دمج: معالجة كل عنصر على حدة
         for (const item of batch) {
-            // نقرأ القيمة الحالية
             const existing = await new Promise((resolve) => {
                 const getReq = store.get(item.key);
                 getReq.onsuccess = () => resolve(getReq.result);
@@ -489,22 +490,16 @@ async function processFile(input, storeName) {
 
             if (existing) {
                 if (storeName === 'stock') {
-                    // جمع الكميات في المرجع
                     existing.qty = (existing.qty || 0) + (item.qty || 0);
-                    existing.name = item.name || existing.name; // تحديث الاسم إذا وجد
+                    existing.name = item.name || existing.name;
                     store.put(existing);
-                } else if (storeName === 'products') {
-                    // في قاعدة الأصناف: نتخطى إذا كان موجوداً (لا نكرر)
-                    // يمكن تحديث الاسم فقط إذا أردت، لكن لا نضيف سجل جديد
                 }
             } else {
-                // إضافة سجل جديد
                 store.put(item);
             }
         }
     }
 
-    // إضافة سجل الملف الجديد
     filesStore.add({ name: fileName, type: storeName, fileId, timestamp: Date.now() });
 
     tx.oncomplete = () => {
@@ -661,12 +656,20 @@ function sw(id) {
     if (map[id] !== undefined && tabs[map[id]]) tabs[map[id]].classList.add('active');
 }
 
+// ✅ البحث المتسامح مع الكود المنظف
 document.getElementById('si').onkeypress = async e => {
     if (e.key === 'Enter') {
-        const val = e.target.value.trim();
+        const rawVal = e.target.value.trim();
+        const cleanVal = cleanCode(rawVal);
+        if (!cleanVal) return;
+
         const tx = db.transaction(["products", "inventory"], "readwrite");
         const prods = await new Promise(r => tx.objectStore("products").getAll().onsuccess = ev => r(ev.target.result));
-        const match = prods.find(p => p.barcode === val || p.item_no === val);
+        
+        // البحث باستخدام التنظيف للطرفين
+        const match = prods.find(p => {
+            return cleanCode(p.barcode) === cleanVal || cleanCode(p.item_no) === cleanVal || p.barcode === rawVal || p.item_no === rawVal;
+        });
 
         if (match) {
             const inv = tx.objectStore("inventory");
@@ -710,7 +713,22 @@ function exportToExcel(tableId, filename) {
 }
 
 window.onload = () => {
-    const sc = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
+    // ✅ دعم جميع صيغ الباركود الشائعة بالإضافة إلى QR
+    const sc = new Html5QrcodeScanner("reader", { 
+        fps: 15, 
+        qrbox: 250,
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.CODABAR
+        ]
+    });
     sc.render(t => {
         document.getElementById('si').value = t;
         document.getElementById('si').dispatchEvent(new KeyboardEvent('keypress', { 'key': 'Enter' }));
