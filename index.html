@@ -1,311 +1,206 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الجرد الاحترافي المتكامل</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <style>
-        :root { 
-            --p-blue: #1a56db; 
-            --p-green: #10b981; 
-            --p-red: #ef4444; 
-            --p-orange: #f59e0b; 
-            --p-dark: #0a1628; 
-            --p-card: rgba(255, 255, 255, 0.05);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: var(--p-dark); color: #f8fafc; direction: rtl; min-height: 100vh; overflow-x: hidden; }
-        
-        .app { max-width: 1200px; margin: 0 auto; padding: 15px; }
-        header { padding: 15px; background: var(--p-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; margin-bottom: 15px; text-align: center; }
-        
-        /* التبويبات */
-        .tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .tab { flex: 1; min-width: 90px; padding: 12px; border: none; border-radius: 12px; background: var(--p-card); color: #94a3b8; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 13px; }
-        .tab.active { background: var(--p-blue); color: #fff; box-shadow: 0 4px 15px rgba(26,86,219,0.3); }
-
-        .panel { display: none; } 
-        .panel.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card { background: var(--p-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 15px; margin-bottom: 15px; }
-        .sinp { width: 100%; padding: 15px; background: rgba(26,86,219,0.1); border: 2px solid var(--p-blue); border-radius: 12px; color: #fff; font-size: 18px; text-align: center; outline: none; margin-bottom: 10px; }
-        
-        /* شريط الفلاتر */
-        .f-bar { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .f-btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: bold; background: #334155; color: #fff; transition: 0.2s; }
-        .f-btn.active { background: var(--p-blue); }
-        .f-btn.f-match.active { background: #3b82f6; }
-        .f-btn.f-plus.active { background: var(--p-green); }
-        .f-btn.f-minus.active { background: var(--p-red); }
-        .f-btn.f-scanned.active { background: var(--p-orange); }
-
-        /* الجداول */
-        .table-container { width: 100%; overflow-x: auto; max-height: 500px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th { padding: 12px; background: rgba(255,255,255,0.03); font-size: 11px; text-align: center; color: #94a3b8; position: sticky; top: 0; }
-        td { padding: 12px; text-align: center; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        
-        .row-match { color: #60a5fa; } /* أزرق للمطابق */
-        .row-plus { color: var(--p-green); }  /* أخضر للزيادة */
-        .row-minus { color: var(--p-red); } /* أحمر للنقص */
-        
-        .item-subname { display: block; font-size: 10px; color: #94a3b8; margin-top: 5px; }
-        .diff-badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 12px; background: rgba(255,255,255,0.1); }
-
-        .btn-action { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-red { background: rgba(239, 68, 68, 0.2); color: var(--p-red); border: 1px solid var(--p-red); }
-
-        /* شاشة التحميل */
-        .loader { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; }
-        .spin { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--p-blue); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام الجرد الاحترافي - الإصدار النهائي</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+    :root { --p-blue: #1a56db; --p-dark: #0a1628; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; background: var(--p-dark); color: #f8fafc; direction: rtl; }
+    .app { max-width: 1200px; margin: 0 auto; padding: 15px; position: relative; z-index: 1; }
+    header { display: flex; align-items: center; padding: 20px; background: rgba(255,255,255,.06); border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,.1); }
+    .tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; }
+    .tab { flex: 1; padding: 12px; border: none; border-radius: 12px; background: rgba(255,255,255,.05); color: #94a3b8; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    .tab.active { background: var(--p-blue); color: #fff; }
+    .panel { display: none; } .panel.active { display: block; }
+    .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 20px; margin-bottom: 15px; }
+    .sinp { width: 100%; padding: 15px; background: rgba(26,86,219,0.1); border: 2px solid var(--p-blue); border-radius: 12px; color: #fff; font-size: 18px; text-align: center; outline: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th { padding: 12px; background: rgba(26,86,219,0.2); font-size: 11px; }
+    td { padding: 10px; text-align: center; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .btn-d { background: rgba(239,68,68,0.15); color: #ef4444; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+</style>
 </head>
 <body>
-
-<div id="loading" class="loader">
-    <div class="spin"></div>
-    <p style="margin-top: 15px;">جاري معالجة البيانات الكبيرة... يرجى الانتظار</p>
-</div>
-
 <div class="app">
-    <header>
-        <h2>📦 نظام الجرد والرقابة المتطور</h2>
-    </header>
+    <header><h1>📦 نظام الجرد الذكي</h1></header>
 
     <div class="tabs">
-        <button class="tab active" onclick="sw('scan')">🔍 سكانر</button>
-        <button class="tab" onclick="sw('inv')">📝 السجل</button>
+        <button class="tab active" onclick="sw('scan')">🔍 السكانر</button>
+        <button class="tab" onclick="sw('inv')">📋 الجرد</button>
         <button class="tab" onclick="sw('stock')">📦 المرجع</button>
         <button class="tab" onclick="sw('cmp')">⚖️ المقارنة</button>
-        <button class="tab" onclick="sw('db')">⚙️ الإعدادات</button>
+        <button class="tab" onclick="sw('db')">🗄️ القاعدة</button>
     </div>
 
     <div class="panel active" id="p-scan">
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
-            <div id="reader"></div>
-            <input class="sinp" id="si" placeholder="امسح باركود أو رقم صنف..." autocomplete="off">
-            <div id="status" style="text-align: center; font-weight: bold; font-size: 18px;"></div>
-        </div>
-    </div>
-
-    <div class="panel" id="p-inv">
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3>سجل ما تم جرده الآن</h3>
-                <button class="btn-action btn-red" onclick="clearData('inventory')">🗑 مسح السجل</button>
-            </div>
-            <div class="table-container">
-                <table id="table-inv">
-                    <thead><tr><th>المعرف</th><th>اسم المنتج</th><th>الكمية المجرودة</th></tr></thead>
-                    <tbody id="inv-body"></tbody>
-                </table>
-            </div>
+            <div id="reader"></div>
+            <input class="sinp" id="si" placeholder="امسح الباركود أو رقم الصنف..." autocomplete="off">
+            <div id="status" style="text-align:center; margin-top:15px; font-weight:bold;"></div>
         </div>
     </div>
 
     <div class="panel" id="p-stock">
         <div class="card">
-            <h3>رفع بيانات المرجع (السيستم)</h3>
-            <p style="font-size: 11px; color: #fbbf24; margin-bottom: 10px;">سيتم جلب الكمية حصرياً من عمود "الفعلي النهائي".</p>
+            <h3>رفع ملف المرجع (الكميات)</h3>
+            <p style="font-size:12px; color:#fbbf24; margin-bottom:10px;">⚠️ سيتم سحب الكمية فقط من عمود "الفعلي النهائي".</p>
             <input type="file" onchange="processFile(this, 'stock')">
-            <div class="table-container" style="margin-top: 15px;">
-                <table id="table-stock">
-                    <thead><tr><th>المعرف</th><th>الاسم</th><th>الكمية بالنظام</th></tr></thead>
-                    <tbody></tbody>
-                </table>
+            <table id="table-stock"><thead><tr><th>المعرف</th><th>الاسم</th><th>الفعلي النهائي</th></tr></thead><tbody></tbody></table>
+        </div>
+    </div>
+
+    <div class="panel" id="p-inv">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between;">
+                <h3>سجل الجرد</h3>
+                <button class="btn-d" onclick="clearStore('inventory')">مسح</button>
             </div>
+            <table id="table-inv"><thead><tr><th>المعرف</th><th>الاسم</th><th>الكمية</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
 
     <div class="panel" id="p-cmp">
         <div class="card">
-            <div class="f-bar">
-                <button class="f-btn active" onclick="setFilt(this, 'all')">الكل</button>
-                <button class="f-btn f-match" onclick="setFilt(this, 'match')">🔵 مطابق</button>
-                <button class="f-btn f-plus" onclick="setFilt(this, 'plus')">🟢 زيادة</button>
-                <button class="f-btn f-minus" onclick="setFilt(this, 'minus')">🔴 نقص</button>
-                <button class="f-btn f-scanned" onclick="setFilt(this, 'scanned')">🟠 مجرود فقط</button>
-            </div>
-            <div class="table-container">
-                <table id="table-cmp">
-                    <thead><tr><th>رقم الصنف / الاسم</th><th>المرجع</th><th>الجرد</th><th>الفرق</th></tr></thead>
-                    <tbody id="cmp-body"></tbody>
-                </table>
-            </div>
+            <h3>⚖️ تقرير الفروقات</h3>
+            <table id="table-cmp"><thead><tr><th>الصنف</th><th>النظام</th><th>الجرد</th><th>الفرق</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
 
     <div class="panel" id="p-db">
         <div class="card">
-            <h3>قاعدة بيانات الأصناف</h3>
-            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">ارفع ملف الإكسيل الرئيسي هنا ليتعرف النظام على الأسماء.</p>
+            <h3>قاعدة البيانات الرئيسية</h3>
             <input type="file" onchange="processFile(this, 'products')">
-            <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                <button class="btn-action btn-red" onclick="clearData('products')">🗑 مسح قاعدة الأصناف</button>
-            </div>
+            <button class="btn-d" onclick="clearStore('products')" style="margin-top:10px;">مسح القاعدة</button>
         </div>
     </div>
 </div>
 
 <script>
 let db;
-let currentFilter = 'all';
-const loader = document.getElementById('loading');
-
-// فتح قاعدة البيانات
-const request = indexedDB.open("UltraJardProDB", 1);
-request.onupgradeneeded = e => {
+const req = indexedDB.open("FinalJardSystem", 1);
+req.onupgradeneeded = (e) => {
     db = e.target.result;
     db.createObjectStore("products", {keyPath:"id", autoIncrement:true}).createIndex("barcode","barcode");
     db.createObjectStore("inventory", {keyPath:"key"});
     db.createObjectStore("stock", {keyPath:"key"});
 };
-request.onsuccess = e => { db = e.target.result; renderAll(); };
+req.onsuccess = (e) => { db = e.target.result; updateUI(); };
 
-// دالة تحليل النصوص المتكررة (تجاهل اسم المتجر)
-function analyzeBlacklist(rows) {
+// تحليل التكرار لتجاهل اسم المتجر
+function getBlacklist(rows) {
     const counts = {};
     rows.forEach(r => r.forEach(c => {
         let v = String(c||'').trim();
-        if(v && /[a-zA-Z\u0600-\u06FF]/.test(v)) counts[v] = (counts[v]||0) + 1;
+        if(v && /[a-zA-Z\u0600-\u06FF]/.test(v)) counts[v] = (counts[v]||0)+1;
     }));
     return Object.keys(counts).filter(k => counts[k] > 10);
 }
 
-// معالجة الملفات
 async function processFile(input, storeName) {
     const file = input.files[0]; if(!file) return;
-    loader.style.display = 'flex';
-    
     const buffer = await file.arrayBuffer();
-    const wb = XLSX.read(buffer, { type: 'array' });
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
+    const wb = XLSX.read(buffer);
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header:1});
     
-    let targetIdx = rows[0].findIndex(c => String(c).trim() === "الفعلي النهائي");
-    const blacklist = analyzeBlacklist(rows);
-    
+    // تحديد رقم عمود "الفعلي النهائي"
+    let targetColIndex = -1;
+    if (rows.length > 0) {
+        targetColIndex = rows[0].findIndex(cell => String(cell).trim() === "الفعلي النهائي");
+    }
+
+    const blacklist = getBlacklist(rows);
     const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
 
-    for(let i=1; i<rows.length; i++) {
-        let row = rows[i];
+    rows.forEach((row, index) => {
+        if(index === 0) return; // تخطي الترويسة
         let d = { barcode:"", item_no:"", name:"", qty:0 };
+        
         row.forEach((cell, idx) => {
-            let v = String(cell||'').trim();
-            if(!v || blacklist.includes(v)) return;
-            const digits = v.replace(/-/g, '');
-            if(v.includes('-') && /^\d+$/.test(digits) && digits.length > 12) d.item_no = v;
-            else if(/^\d+$/.test(val = v) && v.length > 6) d.barcode = v;
-            else if(/[a-zA-Z\u0600-\u06FF]/.test(v)) d.name = v;
-            if(storeName === 'stock' && idx === targetIdx) d.qty = parseFloat(cell) || 0;
+            let val = String(cell||'').trim();
+            if(!val || blacklist.includes(val)) return;
+
+            // منطق رقم الصنف (أرقام فقط + داش + طول > 12)
+            const digits = val.replace(/-/g, '');
+            if(val.includes('-') && /^\d+$/.test(digits) && digits.length > 12) d.item_no = val;
+            // منطق الباركود (أرقام فقط + طول > 6)
+            else if(/^\d+$/.test(val) && val.length > 6) d.barcode = val;
+            // منطق الاسم
+            else if(/[a-zA-Z\u0600-\u06FF]/.test(val)) d.name = val;
+
+            // جلب الكمية حصراً من العمود المحدد
+            if(storeName === 'stock' && idx === targetColIndex) {
+                d.qty = parseFloat(cell) || 0;
+            }
         });
+
         if(d.item_no || d.barcode) {
             if(storeName === 'products') store.put(d);
             else store.put({ key: d.item_no || d.barcode, name: d.name, qty: d.qty });
         }
-    }
-    tx.oncomplete = () => { loader.style.display = 'none'; alert("تم التحديث بنجاح"); renderAll(); };
-}
-
-// تحديث كافة الواجهات
-async function renderAll() {
-    if(!db) return;
-    const tx = db.transaction(["inventory", "stock", "products"], "readonly");
-    const inv = await new Promise(r => tx.objectStore("inventory").getAll().onsuccess = e => r(e.target.result));
-    const stock = await new Promise(r => tx.objectStore("stock").getAll().onsuccess = e => r(e.target.result));
-
-    // 1. تحديث سجل الجرد
-    document.getElementById('inv-body').innerHTML = inv.map(i => `
-        <tr><td>${i.key}</td><td>${i.name}</td><td><b>${i.qty}</b></td></tr>
-    `).join('');
-
-    // 2. تحديث المرجع
-    document.querySelector('#table-stock tbody').innerHTML = stock.map(s => `
-        <tr><td>${s.key}</td><td>${s.name}</td><td>${s.qty}</td></tr>
-    `).join('');
-
-    // 3. تحديث المقارنة (مع دمج الاسم)
-    const cmpBody = document.getElementById('cmp-body');
-    cmpBody.innerHTML = '';
-    const allKeys = new Set([...inv.map(i => i.key), ...stock.map(s => s.key)]);
-    const fragment = document.createDocumentFragment();
-
-    allKeys.forEach(key => {
-        const iI = inv.find(x => x.key === key);
-        const sI = stock.find(x => x.key === key);
-        const qI = iI ? iI.qty : 0;
-        const qS = sI ? sI.qty : 0;
-        const diff = qI - qS;
-        const name = (iI || sI).name || "غير مسجل بالقاعدة";
-
-        if(currentFilter === 'match' && diff !== 0) return;
-        if(currentFilter === 'plus' && diff <= 0) return;
-        if(currentFilter === 'minus' && diff >= 0) return;
-        if(currentFilter === 'scanned' && qI === 0) return;
-
-        let rowCls = diff === 0 ? 'row-match' : (diff > 0 ? 'row-plus' : 'row-minus');
-        const tr = document.createElement('tr');
-        tr.className = rowCls;
-        tr.innerHTML = `
-            <td style="text-align:right;">${key}<span class="item-subname">${name}</span></td>
-            <td>${qS}</td><td>${qI}</td>
-            <td><span class="diff-badge">${diff > 0 ? '+' : ''}${diff}</span></td>
-        `;
-        fragment.appendChild(tr);
     });
-    cmpBody.appendChild(fragment);
+    tx.oncomplete = () => { 
+        if(storeName === 'stock' && targetColIndex === -1) alert("⚠️ لم يتم العثور على عمود باسم 'الفعلي النهائي'");
+        else alert("✅ تم الرفع بنجاح");
+        updateUI(); 
+    };
 }
 
-// الفلاتر
-function setFilt(btn, type) {
-    currentFilter = type;
-    document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderAll();
-}
-
-// التبديل بين الصفحات
-function sw(id) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('p-'+id).classList.add('active');
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    if(event) event.currentTarget.classList.add('active');
-}
-
-// منطق البحث والسكانر
-document.getElementById('si').onkeypress = async e => {
-    if(e.key === 'Enter') {
+// نظام السكانر
+document.getElementById('si').onkeypress = async (e) => {
+    if (e.key === 'Enter') {
         const val = e.target.value.trim();
         const tx = db.transaction(["products", "inventory"], "readwrite");
         const prods = await new Promise(r => tx.objectStore("products").getAll().onsuccess = ev => r(ev.target.result));
         const match = prods.find(p => p.barcode === val || p.item_no === val);
-        
-        if(match) {
+
+        if (match) {
             const inv = tx.objectStore("inventory");
             const key = match.item_no || match.barcode;
             const exist = await new Promise(r => inv.get(key).onsuccess = ev => r(ev.target.result));
-            if(exist) { exist.qty++; inv.put(exist); }
+            if (exist) { exist.qty++; inv.put(exist); }
             else { inv.put({ key: key, name: match.name, qty: 1 }); }
-            document.getElementById('status').innerHTML = `<span style="color:var(--p-green)">✅ تم رصد: ${match.name}</span>`;
+            document.getElementById('status').innerHTML = `<span style="color:#10b981">✅ ${match.name}</span>`;
         } else {
-            document.getElementById('status').innerHTML = `<span style="color:var(--p-red)">❌ لم يتم التعرف على الصنف</span>`;
+            document.getElementById('status').innerHTML = `<span style="color:#ef4444">❌ غير مسجل</span>`;
         }
-        e.target.value = ""; renderAll();
+        e.target.value = ""; updateUI();
     }
 };
 
-function clearData(s) { if(confirm("حذف البيانات نهائياً؟")) db.transaction(s,"readwrite").objectStore(s).clear().oncomplete=()=>renderAll(); }
+async function updateUI() {
+    if(!db) return;
+    const tx = db.transaction(["products", "inventory", "stock"], "readonly");
+    const inv = await new Promise(r => tx.objectStore("inventory").getAll().onsuccess = e => r(e.target.result));
+    document.getElementById('table-inv').querySelector('tbody').innerHTML = inv.map(i => `<tr><td>${i.key}</td><td>${i.name}</td><td>${i.qty}</td></tr>`).join('');
+    
+    const stock = await new Promise(r => tx.objectStore("stock").getAll().onsuccess = e => r(e.target.result));
+    document.getElementById('table-stock').querySelector('tbody').innerHTML = stock.map(s => `<tr><td>${s.key}</td><td>${s.name}</td><td>${s.qty}</td></tr>`).join('');
+
+    const allKeys = new Set([...inv.map(i => i.key), ...stock.map(s => s.key)]);
+    document.getElementById('table-cmp').querySelector('tbody').innerHTML = [...allKeys].map(k => {
+        const i = inv.find(x => x.key === k); const s = stock.find(x => x.key === k);
+        const qi = i ? i.qty : 0; const qs = s ? s.qty : 0;
+        return `<tr><td>${k}<br><small>${(i||s).name}</small></td><td>${qs}</td><td>${qi}</td><td style="color:${qi-qs<0?'#ef4444':'#10b981'}">${qi-qs}</td></tr>`;
+    }).join('');
+}
+
+function sw(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('p-'+id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
+function clearStore(s) { if(confirm("حذف؟")) db.transaction(s, "readwrite").objectStore(s).clear().oncomplete = () => updateUI(); }
 
 window.onload = () => {
     const sc = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
-    sc.render(t => { 
-        document.getElementById('si').value = t; 
-        document.getElementById('si').dispatchEvent(new KeyboardEvent('keypress',{'key':'Enter'})); 
-    });
+    sc.render(t => { document.getElementById('si').value = t; document.getElementById('si').dispatchEvent(new KeyboardEvent('keypress',{'key':'Enter'})); });
 };
 </script>
 </body>
